@@ -272,7 +272,76 @@
 ;;  (eaf-bind-key take_photo "p" eaf-camera-keybinding)
 ;;  (eaf-bind-key nil "M-q" eaf-browser-keybinding)) ;; unbind, see more in the Wiki
 
+;;; ** PARA HACER LOS BACKUPS - Configuración de Git y Magit **
 
+;;; 1. Asegúrate de tener Git instalado en tu sistema Linux Mint.
+;;;    En la terminal, puedes verificar con:  `git --version`
+;;;    Si no está instalado, puedes instalarlo con: `sudo apt update && sudo apt install git`
+
+;;; 2. Instala Magit y Transient en Emacs (si no los tienes ya).
+;;;    Emacs 30.0.50 ya debería tenerlos, pero si no, usa M-x package-install RET magit RET y M-x package-install RET transient RET
+
+;;; 3. Configuración básica de Magit (opcional, pero recomendado)
+(use-package magit
+  :commands (magit-status magit-clone) ; Comandos que queremos cargar al inicio
+  :config
+  ;;; Atajos de teclado Emacs-style para Magit (recomendado si no usas Evil Mode)
+  (global-set-key (kbd "C-c g s") 'magit-status) ; Atajo Emacs-style: Ctrl+c seguido de g, luego s para magit-status
+  (global-set-key (kbd "C-c g c") 'magit-clone)  ; Atajo Emacs-style: Ctrl+c seguido de g, luego c para magit-clone
+
+  ;;; Atajos de teclado Vim-style para Magit (opcional, si usas Evil Mode)
+  ;; (evil-define-key 'normal 'global "gs" 'magit-status) ; Atajo Vim-style para magit-status (comentado porque no usas Evil Mode ahora)
+  ;; (evil-define-key 'normal 'magit-mode-map "q" 'magit-mode-bury-buffer) ; Atajo Vim-style para cerrar buffers de Magit (comentado)
+
+  ;;; Personalizaciones adicionales de Magit (opcional, puedes investigar más adelante)
+  )
+
+;;; 4. Configuración básica de Transient (ya debería venir con Magit, pero por si acaso)
+(use-package transient
+  :ensure nil ; Transient suele venir con Magit, así que no es necesario instalarlo aparte
+  ;;; Puedes agregar configuraciones adicionales de Transient aquí si lo deseas
+  )
+
+;;; ** Función para Backupear la Configuración a GitHub (my/update-config) **
+
+(defun my/update-config ()
+  "Actualiza la configuración de Emacs en GitHub.
+  Realiza los siguientes pasos:
+  1. Guarda todos los buffers modificados.
+  2. Añade todos los archivos modificados al repositorio Git local.
+  3. Hace un commit con un mensaje descriptivo.
+  4. Sube (push) los commits al repositorio remoto en GitHub."
+  (interactive)
+  (let ((emacs-config-dir
+         (or (and (boundp 'user-emacs-directory) user-emacs-directory)
+             (expand-file-name "~/.config/emacs/") ; Prioriza .config/emacs
+             (expand-file-name "~/.emacs.d/"))))) ; Fallback a .emacs.d
+    (when (not emacs-config-dir)
+      (error "No se pudo determinar el directorio de configuración de Emacs."))
+    (save-some-buffers t) ; Guarda buffers modificados antes de hacer commit
+
+    (unless (executable-find "git")
+      (error "Git no está instalado o no está en el PATH."))
+
+    (with-current-buffer (shell-command-buffer "*git-status*")
+      (call-process "git" nil "*git-status*" nil "status" :directory emacs-config-dir)
+      (pop-to-buffer "*git-status*")
+      (unless (string-empty-p (buffer-string))
+        (when (y-or-n-p "Deseas actualizar tu configuración de Emacs? ")
+          (let ((commit-message (read-string "Describe los cambios (mensaje de commit): ")))
+            (call-process "git" nil nil nil "add" "." :directory emacs-config-dir)
+            (message "Archivos agregados al staging area.")
+            (when (y-or-n-p "Quieres agregar todos los archivos modificados? ")
+              (call-process "git" nil nil nil "commit" "-m" commit-message :directory emacs-config-dir)
+              (message "Commit realizado con mensaje: %s" commit-message)
+              (when (y-or-n-p "Deseas hacer push a GitHub? ")
+                (call-process "git" nil nil nil "push" "origin" "main" :directory emacs-config-dir)
+                (message "Cambios subidos a GitHub."))))))))))
+
+;;; ** Atajo de Teclado para my/update-config (opcional) **
+(global-set-key (kbd "C-c u") 'my/update-config) ; Atajo: Ctrl+c luego u
+
+;;; *** Fin de Configuración de Git, Magit y Transient ***
 
 ;; Optimizaciones finales
 (setq jit-lock-defer-time 0.05)
