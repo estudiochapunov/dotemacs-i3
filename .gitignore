@@ -6,10 +6,15 @@
 
 # Backup files
 *~
+*.eld
+*.log
 init.el.*
 recentf
 tramp
 
+# Image files
+*.jpg
+*.png
 
 # Undo-tree save-files
 *.~undo-tree
