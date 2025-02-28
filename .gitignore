@@ -6,6 +6,20 @@
 
 # Backup files
 *~
+init.el.*
+recentf
+tramp
+
 
 # Undo-tree save-files
 *.~undo-tree
+
+# carpetas a evitar subir
+elpa/
+eshell/
+auto-save-list/
+straight/
+site-lisp/
+transient/
+url/
+*/
