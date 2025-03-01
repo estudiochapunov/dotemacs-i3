@@ -312,8 +312,6 @@
   ;;; Puedes agregar configuraciones adicionales de Transient aquí si lo deseas
   )
 
-;;; ** Función para Backupear la Configuración a GitHub (my/update-config) - Versión FINAL (DeepSeek-R1)**
-
 
 (defun my/update-config ()
   "Actualiza la configuración de Emacs en GitHub usando Magit."
@@ -324,24 +322,32 @@
       (error "No se pudo determinar el directorio de configuración de Emacs."))
     (unless (executable-find "git")
       (error "Git no está instalado o no está en el PATH."))
-    (save-some-buffers t) ; Guarda todos los buffers modificados
-    
+    (save-some-buffers t)
+
+    ;; Verificar si Magit está disponible
+    (if (not (fboundp 'magit-status))
+        (error "Magit no está instalado. Por favor, instala Magit primero.")
+
     ;; Abrir Magit en el directorio de configuración
-    (magit-status emacs-config-dir)
-    (message "Usa Magit para stage (s), commit (c c), y push (P p).")
+    (cd emacs-config-dir)
+	;; Verificar si es un repositorio Git
+      	(if (not (file-exists-p (expand-file-name ".git" emacs-config-dir)))
+          (error "El directorio de configuración no es un repositorio Git. Inicializa git primero.")
+
+    ;; Mostrar estado de Git
+       (magit-status emacs-config-dir)
+       (message "Usa Magit para stage (s), commit (c c), y push (P p).")
 
     ;; Automatización opcional (si se confirma)
-    (when (y-or-n-p "¿Quieres stagear todos los cambios y hacer commit automáticamente? ")
-      ;; Stage todos los cambios
-      (magit-stage-modified)
-      ;; Commit
-      (let ((commit-message (read-string "Mensaje de commit: ")))
-        (magit-commit-create (list "-m" commit-message))
-      ;; Push
-      (when (y-or-n-p "¿Hacer push a GitHub? ")
-        (magit-push-current-to-pushremote))))
-    )) ;; faltan estos paréntesis de cierre a la defun?
-
+    (when (y-or-n-p "¿Quieres stagear todos los cambios (agregar todos los archivos modificados) y hacer commit automáticamente? ")
+      (magit-stage-modified t)
+      ;; Solicitar mensaje de commit y crear el commit
+	(let ((commit-message (read-string "Mensaje de commit: ")))
+        (magit-commit-create (list "-m" commit-message)) 
+      ;; Hacer push
+	(when (y-or-n-p "¿Hacer push a GitHub? ")
+        (magit-push-current-to-pushremote nil)))
+    ))))) ; Cierre del when y la función
 
 ;; Optimizaciones finales
 (setq jit-lock-defer-time 0.05)
