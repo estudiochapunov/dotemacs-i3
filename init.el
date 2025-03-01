@@ -336,7 +336,7 @@
               (message "Commit realizado con mensaje: %s" commit-message)
               (when (y-or-n-p "Deseas hacer push a GitHub? ")
                 (call-process "git" nil nil nil "push" "origin" "main" :directory emacs-config-dir)
-                (message "Cambios subidos a GitHub.")))))))))
+                (message "Cambios subidos a GitHub."))))))))
 
 ;;; ** Atajo de Teclado para my/update-config (opcional) **
 (global-set-key (kbd "C-c u") 'my/update-config) ; Atajo: Ctrl+c luego u
