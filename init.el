@@ -324,7 +324,7 @@
       (error "No se pudo determinar el directorio de configuración de Emacs."))
     (unless (executable-find "git")
       (error "Git no está instalado o no está en el PATH."))
-    (save-some-buffers t)
+    (save-some-buffers t) ; Guarda todos los buffers modificados
     
     ;; Abrir Magit en el directorio de configuración
     (magit-status emacs-config-dir)
@@ -332,12 +332,16 @@
 
     ;; Automatización opcional (si se confirma)
     (when (y-or-n-p "¿Quieres stagear todos los cambios y hacer commit automáticamente? ")
+      ;; Stage todos los cambios
       (magit-stage-modified)
+      ;; Commit
       (let ((commit-message (read-string "Mensaje de commit: ")))
-        (magit-commit-create (list "-m" commit-message)) ; <- Aquí se cerró el let
+        (magit-commit-create (list "-m" commit-message))
+      ;; Push
       (when (y-or-n-p "¿Hacer push a GitHub? ")
-        (magit-push-current-to-pushremote)))
-    ))) ; Cierre del when y la función
+        (magit-push-current-to-pushremote))))
+    )) ;; faltan estos paréntesis de cierre a la defun?
+
 
 ;; Optimizaciones finales
 (setq jit-lock-defer-time 0.05)
