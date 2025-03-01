@@ -341,7 +341,7 @@
     ;; Automatización opcional (si se confirma)
     (when (y-or-n-p "¿Quieres stagear todos los cambios (agregar todos los archivos modificados) y hacer commit automáticamente? ")
       (magit-stage-modified t)
-      ;; Solicitar mensaje de commit y crear el commit
+      ;; Solicitar mensaje de commit y después crear el commit
 	(let ((commit-message (read-string "Mensaje de commit: ")))
         (magit-commit-create (list "-m" commit-message)) 
       ;; Hacer push
