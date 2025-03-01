@@ -220,8 +220,8 @@
   ;; No crear pares de comillas simples en modo Lisp
   (sp-local-pair '(emacs-lisp-mode lisp-mode scheme-mode) "'" nil :actions nil))
 
-(use-package) indium 			;; Recomendación de DeepSeek-R1
-:ensure t
+(use-package indium 			;; Recomendación de DeepSeek-R1
+  :ensure t)
 
 (use-package lispy		;; Recomendación de DeepSeek-R1 (para revisar paréntesis y cosas así)
   :ensure t
