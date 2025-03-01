@@ -307,9 +307,14 @@
 
 ;;; ** Función de Prueba Minimalista my/update-config **
 
+;;; ** Función de Prueba Intermedia my/update-config **
+
 (defun my/update-config ()
   (interactive)
-  (let ((emacs-config-dir (expand-file-name "~/.emacs.d/"))) ; Definición SIMPLE
+  (let ((emacs-config-dir
+         (or (and (boundp 'user-emacs-directory) user-emacs-directory)
+             (expand-file-name "~/.config/emacs/") ; Prioriza .config/emacs
+             (expand-file-name "~/.emacs.d/"))))) ; Fallback a .emacs.d
     (message "Directorio de configuración de Emacs: %s" emacs-config-dir)))
 
 ;; INICIO DE COMMENTADA
