@@ -315,7 +315,7 @@
          (or (and (boundp 'user-emacs-directory) user-emacs-directory)
              (expand-file-name "~/.config/emacs/") ; Prioriza .config/emacs
              (expand-file-name "~/.emacs.d/"))))) ; Fallback a .emacs.d
-    (message "Directorio de configuración de Emacs: %s" emacs-config-dir)))
+    (message "Directorio de configuración de Emacs: %s" emacs-config-dir))
 
 ;; INICIO DE COMMENTADA
 ;(defun my/update-config ()
