@@ -1,4 +1,5 @@
-;; -*- lexical-binding: t -*-
+;;; -*- lexical-binding: t -*-
+
 
 ;; Optimizaciones iniciales para mejor rendimiento
 (setq gc-cons-threshold 100000000)
@@ -304,44 +305,52 @@
 
 ;;; ** Función para Backupear la Configuración a GitHub (my/update-config) **
 
+;;; ** Función de Prueba Minimalista my/update-config **
+
 (defun my/update-config ()
-  "Actualiza la configuración de Emacs en GitHub.
-  Realiza los siguientes pasos:
-  1. Guarda todos los buffers modificados.
-  2. Añade todos los archivos modificados al repositorio Git local.
-  3. Hace un commit con un mensaje descriptivo.
-  4. Sube (push) los commits al repositorio remoto en GitHub."
   (interactive)
-  (let ((emacs-config-dir
-         (or (and (boundp 'user-emacs-directory) user-emacs-directory)
-             (expand-file-name "~/.config/emacs/") ; Prioriza .config/emacs
-             (expand-file-name "~/.emacs.d/"))))) ; Fallback a .emacs.d
-    (when (not emacs-config-dir)
-      (error "No se pudo determinar el directorio de configuración de Emacs."))
-    (save-some-buffers t) ; Guarda buffers modificados antes de hacer commit
+  (let ((emacs-config-dir (expand-file-name "~/.emacs.d/"))) ; Definición SIMPLE
+    (message "Directorio de configuración de Emacs: %s" emacs-config-dir)))
 
-    (unless (executable-find "git")
-      (error "Git no está instalado o no está en el PATH."))
-
-    (with-current-buffer (shell-command-buffer "*git-status*")
-      (call-process "git" nil "*git-status*" nil "status" :directory emacs-config-dir)
-      (pop-to-buffer "*git-status*")
-      (unless (string-empty-p (buffer-string))
-        (when (y-or-n-p "Deseas actualizar tu configuración de Emacs? ")
-          (let ((commit-message (read-string "Describe los cambios (mensaje de commit): ")))
-            (call-process "git" nil nil nil "add" "." :directory emacs-config-dir)
-            (message "Archivos agregados al staging area.")
-            (when (y-or-n-p "Quieres agregar todos los archivos modificados? ")
-              (call-process "git" nil nil nil "commit" "-m" commit-message :directory emacs-config-dir)
-              (message "Commit realizado con mensaje: %s" commit-message)
-              (when (y-or-n-p "Deseas hacer push a GitHub? ")
-                (call-process "git" nil nil nil "push" "origin" "main" :directory emacs-config-dir)
-                (message "Cambios subidos a GitHub."))))))))
-
+;; INICIO DE COMMENTADA
+;(defun my/update-config ()
+;  "Actualiza la configuración de Emacs en GitHub.
+;  Realiza los siguientes pasos:
+;  1. Guarda todos los buffers modificados.
+;  2. Añade todos los archivos modificados al repositorio Git local.
+;  3. Hace un commit con un mensaje descriptivo.
+;  4. Sube (push) los commits al repositorio remoto en GitHub."
+;  (interactive)
+;  (let ((emacs-config-dir
+;         (or (and (boundp 'user-emacs-directory) user-emacs-directory)
+;             (expand-file-name "~/.config/emacs/") ; Prioriza .config/emacs
+;             (expand-file-name "~/.emacs.d/"))))) ; Fallback a .emacs.d
+;    (when (not emacs-config-dir)
+;      (error "No se pudo determinar el directorio de configuración de Emacs."))
+;    (save-some-buffers t) ; Guarda buffers modificados antes de hacer commit
+;
+;    (unless (executable-find "git")
+;      (error "Git no está instalado o no está en el PATH."))
+;
+;    (with-current-buffer (shell-command-buffer "*git-status*")
+;      (call-process "git" nil "*git-status*" nil "status" :directory emacs-config-dir)
+;      (pop-to-buffer "*git-status*")
+;      (unless (string-empty-p (buffer-string))
+;        (when (y-or-n-p "Deseas actualizar tu configuración de Emacs? ")
+;          (let ((commit-message (read-string "Describe los cambios (mensaje de commit): ")))
+;            (call-process "git" nil nil nil "add" "." :directory emacs-config-dir)
+;            (message "Archivos agregados al staging area.")
+;            (when (y-or-n-p "Quieres agregar todos los archivos modificados? ")
+;              (call-process "git" nil nil nil "commit" "-m" commit-message :directory emacs-config-dir)
+;              (message "Commit realizado con mensaje: %s" commit-message)
+;              (when (y-or-n-p "Deseas hacer push a GitHub? ")
+;                (call-process "git" nil nil nil "push" "origin" "main" :directory emacs-config-dir)
+;                (message "Cambios subidos a GitHub."))))))))
+;
 ;;; ** Atajo de Teclado para my/update-config (opcional) **
-(global-set-key (kbd "C-c u") 'my/update-config) ; Atajo: Ctrl+c luego u
-
-;;; *** Fin de Configuración de Git, Magit y Transient ***
+;(global-set-key (kbd "C-c u") 'my/update-config) ; Atajo: Ctrl+c luego u
+;; FIN DE COMMENTADA
+;;; *** Fin de Configuración de Git, de Magit y de Transient ***
 
 ;; Optimizaciones finales
 (setq jit-lock-defer-time 0.05)
