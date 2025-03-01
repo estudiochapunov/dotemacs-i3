@@ -220,6 +220,13 @@
   ;; No crear pares de comillas simples en modo Lisp
   (sp-local-pair '(emacs-lisp-mode lisp-mode scheme-mode) "'" nil :actions nil))
 
+(use-package) indium 			;; Recomendación de DeepSeek-R1
+:ensure t
+
+(use-package lispy		;; Recomendación de DeepSeek-R1 (para revisar paréntesis y cosas así)
+  :ensure t
+  :hook (emacs-lisp-mode . lispy-mode))
+
 ;; Hooks personalizados para modos Lisp
 (defun my-lisp-mode-setup ()
   (show-paren-mode 1)
@@ -271,10 +278,6 @@
 ;;  (eaf-bind-key scroll_down "C-p" eaf-pdf-viewer-keybinding)
 ;;  (eaf-bind-key take_photo "p" eaf-camera-keybinding)
 ;;  (eaf-bind-key nil "M-q" eaf-browser-keybinding)) ;; unbind, see more in the Wiki
-
-(use-package lispy
-  :ensure t
-  :hook (emacs-lisp-mode . lispy-mode))
 
 ;;; ** PARA HACER LOS BACKUPS - Configuración de Git y Magit **
 
@@ -345,10 +348,12 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(org-fold-core-style 'overlays)
  '(package-selected-packages
    '(ac-geiser company corfu doom-modeline doom-themes embark-consult
-	       geiser-racket hyperbole magit marginalia projectile
-	       rainbow-delimiters sly smartparens vertico vterm xclip)))
+	       geiser-racket hyperbole lispy magit magit-p4 marginalia
+	       projectile rainbow-delimiters sly smartparens vertico
+	       xclip)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
