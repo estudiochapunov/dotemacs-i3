@@ -302,47 +302,40 @@
   ;;; Puedes agregar configuraciones adicionales de Transient aquí si lo deseas
   )
 
-;;; ** Función para Backupear la Configuración a GitHub (my/update-config) - Versión REVISADA **
+;;; ** Función para Backupear la Configuración a GitHub (my/update-config) - Versión MAGIT INTEGRADA - CORREGIDA **
 
 (defun my/update-config ()
-  "Actualiza la configuración de Emacs en GitHub."
+  "Actualiza la configuración de Emacs en GitHub usando Magit."
   (interactive)
-  (let (emacs-config-dir) ; Declara emacs-config-dir sin valor inicial
-    (if (boundp 'user-emacs-directory) ; 1. Verificar user-emacs-directory
-        (setq emacs-config-dir (expand-file-name user-emacs-directory))
-      (if (file-directory-p (expand-file-name "/home/maitech/.config/emacs/")) ; 2. Verificar ~/.config/emacs/
-          (setq emacs-config-dir (expand-file-name "/home/maitech/.config/emacs/"))
-        (if (file-directory-p (expand-file-name "/home/maitech/.emacs.d/")) ; 3. Verificar ~/.emacs.d/
-            (setq emacs-config-dir (expand-file-name "/home/maitech/.emacs.d/"))
-          (error "No se pudo determinar el directorio de configuración de Emacs."))))
-
-    (if (not emacs-config-dir) ; Verificación final (por si acaso)
-        (error "No se pudo determinar el directorio de configuración de Emacs."))
-
-    (message "Directorio de configuración de Emacs: %s" emacs-config-dir) ; Mensaje de prueba - Eliminar después
-    (save-some-buffers t)
+  (let ((emacs-config-dir (or (and (boundp 'user-emacs-directory) user-emacs-directory)
+                              (expand-file-name "~/.emacs.d/"))))
+    (unless emacs-config-dir
+      (error "No se pudo determinar el directorio de configuración de Emacs."))
     (unless (executable-find "git")
       (error "Git no está instalado o no está en el PATH."))
+    (save-some-buffers t) ; Guarda todos los buffers modificados
 
-    (with-current-buffer (shell-command-buffer "*git-status*")
-      (call-process "git" nil "*git-status*" nil "status" :directory emacs-config-dir)
-      (pop-to-buffer "*git-status*")
-      (unless (string-empty-p (buffer-string))
-        (when (y-or-n-p "Deseas actualizar tu configuración de Emacs? ")
-          (let ((commit-message (read-string "Describe los cambios (mensaje de commit): ")))
-            (call-process "git" nil nil nil "add" "." :directory emacs-config-dir)
-            (message "Archivos agregados al staging area.")
-            (when (y-or-n-p "Quieres agregar todos los archivos modificados? ")
-              (call-process "git" nil nil nil "commit" "-m" commit-message :directory emacs-config-dir)
-              (message "Commit realizado con mensaje: %s" commit-message)
-              (when (y-or-n-p "Deseas hacer push a GitHub? ")
-                (call-process "git" nil nil nil "push" "origin" "main" :directory emacs-config-dir)
-                (message "Cambios subidos a GitHub.")))))))))
+    ;; Abrir Magit en el directorio de configuración
+    (magit-status emacs-config-dir)
+    (message "Usa Magit para stage, commit y push de los cambios (s = stage, c c = commit, P p = push).")
+
+    ;; Opcional: Automatizar acciones si se desea
+    (when (y-or-n-p "¿Quieres agregar todos los archivos y hacer commit automáticamente? ")
+      (with-current-buffer (magit-get-status-buffer emacs-config-dir)
+        ;; Stage todos los cambios
+        (magit-stage-modified)
+        ;; Crear commit
+        (let ((commit-message (read-string "Mensaje de commit: ")))
+          (magit-commit-create (list "-m" commit-message))
+        ;; Push (si se confirma)
+          (when (y-or-n-p "¿Hacer push a GitHub? ")
+            (magit-push-current-to-pushremote)))))))
 
 ;;; ** Atajo de Teclado para my/update-config (opcional) **
 (global-set-key (kbd "C-c u") 'my/update-config) ; Atajo: Ctrl+c luego u
 
 ;;; *** Fin de Configuración de Git, de Magit y de Transient ***
+
 
 ;; Optimizaciones finales
 (setq jit-lock-defer-time 0.05)
