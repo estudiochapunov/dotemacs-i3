@@ -332,22 +332,22 @@
     (cd emacs-config-dir)
 	;; Verificar si es un repositorio Git
       	(if (not (file-exists-p (expand-file-name ".git" emacs-config-dir)))
-          (error "El directorio de configuración no es un repositorio Git. Inicializa git primero.")
+            (error "El directorio de configuración no es un repositorio Git. Inicializa git primero.")
 
-    ;; Mostrar estado de Git
-       (magit-status emacs-config-dir)
-       (message "Usa Magit para stage (s), commit (c c), y push (P p).")
+	  ;; Mostrar estado de Git
+	  (magit-status emacs-config-dir)
+	  (message "Usa Magit para stage (s), commit (c c), y push (P p).")
 
-    ;; Automatización opcional (si se confirma)
-    (when (y-or-n-p "¿Quieres stagear todos los cambios (agregar todos los archivos modificados) y hacer commit automáticamente? ")
-      (magit-stage-modified t)
-      ;; Solicitar mensaje de commit y después crear el commit
-	(let ((commit-message (read-string "Mensaje de commit: ")))
-        (magit-commit-create (list "-m" commit-message)) 
-      ;; Hacer push
-	(when (y-or-n-p "¿Hacer push a GitHub? ")
-        (magit-push-current-to-pushremote nil)))
-    ))))) ; Cierre del when y la función
+	  ;; Automatización opcional (si se confirma)
+	  (when (y-or-n-p "¿Quieres stagear todos los cambios (agregar todos los archivos modificados) y hacer commit automáticamente? ")
+	    (magit-stage-modified t)
+	    ;; Solicitar mensaje de commit y después crear el commit
+	    (let ((commit-message (read-string "Mensaje de commit: ")))
+              (magit-commit-create (list "-m" commit-message)) 
+	      ;; Hacer push
+	      (when (y-or-n-p "¿Hacer push a GitHub? ")
+		(magit-push-current-to-pushremote nil)))
+	    ))))) ; Cierre del when y la función
 
 ;; Optimizaciones finales
 (setq jit-lock-defer-time 0.05)
