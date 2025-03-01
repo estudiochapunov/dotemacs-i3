@@ -272,6 +272,10 @@
 ;;  (eaf-bind-key take_photo "p" eaf-camera-keybinding)
 ;;  (eaf-bind-key nil "M-q" eaf-browser-keybinding)) ;; unbind, see more in the Wiki
 
+(use-package lispy
+  :ensure t
+  :hook (emacs-lisp-mode . lispy-mode))
+
 ;;; ** PARA HACER LOS BACKUPS - Configuración de Git y Magit **
 
 ;;; 1. Asegúrate de tener Git instalado en tu sistema Linux Mint.
@@ -302,7 +306,8 @@
   ;;; Puedes agregar configuraciones adicionales de Transient aquí si lo deseas
   )
 
-;;; ** Función para Backupear la Configuración a GitHub (my/update-config) - Versión MAGIT INTEGRADA - CORREGIDA **
+;;; ** Función para Backupear la Configuración a GitHub (my/update-config) - Versión FINAL (DeepSeek-R1)**
+
 
 (defun my/update-config ()
   "Actualiza la configuración de Emacs en GitHub usando Magit."
@@ -313,29 +318,20 @@
       (error "No se pudo determinar el directorio de configuración de Emacs."))
     (unless (executable-find "git")
       (error "Git no está instalado o no está en el PATH."))
-    (save-some-buffers t) ; Guarda todos los buffers modificados
-
+    (save-some-buffers t)
+    
     ;; Abrir Magit en el directorio de configuración
     (magit-status emacs-config-dir)
-    (message "Usa Magit para stage, commit y push de los cambios (s = stage, c c = commit, P p = push).")
+    (message "Usa Magit para stage (s), commit (c c), y push (P p).")
 
-    ;; Opcional: Automatizar acciones si se desea
-    (when (y-or-n-p "¿Quieres agregar todos los archivos y hacer commit automáticamente? ")
-      (with-current-buffer (magit-get-status-buffer emacs-config-dir)
-        ;; Stage todos los cambios
-        (magit-stage-modified)
-        ;; Crear commit
-        (let ((commit-message (read-string "Mensaje de commit: ")))
-          (magit-commit-create (list "-m" commit-message))
-        ;; Push (si se confirma)
-          (when (y-or-n-p "¿Hacer push a GitHub? ")
-            (magit-push-current-to-pushremote)))))))
-
-;;; ** Atajo de Teclado para my/update-config (opcional) **
-(global-set-key (kbd "C-c u") 'my/update-config) ; Atajo: Ctrl+c luego u
-
-;;; *** Fin de Configuración de Git, de Magit y de Transient ***
-
+    ;; Automatización opcional (si se confirma)
+    (when (y-or-n-p "¿Quieres stagear todos los cambios y hacer commit automáticamente? ")
+      (magit-stage-modified)
+      (let ((commit-message (read-string "Mensaje de commit: ")))
+        (magit-commit-create (list "-m" commit-message)) ; <- Aquí se cerró el let
+      (when (y-or-n-p "¿Hacer push a GitHub? ")
+        (magit-push-current-to-pushremote)))
+    ))) ; Cierre del when y la función
 
 ;; Optimizaciones finales
 (setq jit-lock-defer-time 0.05)
