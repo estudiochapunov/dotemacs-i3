@@ -1,6 +1,6 @@
 ;;; -*- lexical-binding: t -*-
 
-;; Optimizaciones iniciales para mejor rendimiento
+;; Optimizaciones iniciales para mejor rendimiento y funcionamiento
 (setq gc-cons-threshold 100000000)
 (setq read-process-output-max (* 1024 1024))
 (setq create-lockfiles nil)
