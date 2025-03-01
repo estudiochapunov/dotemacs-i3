@@ -223,10 +223,10 @@
 (use-package json-process-client  ;; Recomendación de DeepSeek-R1, para indium
   :ensure t)
 
-(use-package indium ;; Recomendación de DeepSeek-R1, para lispy
+(use-package indium               ;; Recomendación de DeepSeek-R1, para lispy
   :ensure t)
 
-(use-package lispy		;; Recomendación de DeepSeek-R1 (para revisar paréntesis y cosas así)
+(use-package lispy		  ;; Recomendación de DeepSeek-R1 (para revisar paréntesis y cosas así)
   :ensure t
   :hook (emacs-lisp-mode . lispy-mode))
 
