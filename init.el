@@ -180,7 +180,10 @@
      ;; Opcional: Hacer EAF el navegador por defecto
 ;(setq browse-url-browser-function 'eaf-open-browser)
 
-
+;;; Propuesta de configuración de EAF hecha por Perplexity 240325
+     (add-to-list 'load-path "~/.emacs.d/eaf")
+       (require 'eaf)
+       (require 'eaf-browser)  ; Activa el navegador
 
 
 
