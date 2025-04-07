@@ -1,214 +1,114 @@
 ;;; -*- lexical-binding: t -*-
 
-;; Optimizaciones iniciales para mejor rendimiento y funcionamiento
-(setq gc-cons-threshold 100000000)
-(setq read-process-output-max (* 1024 1024))
-(setq create-lockfiles nil)
+;;; ----------------------------------------------------------------------
+;;; 1. Package Management
+;;; ----------------------------------------------------------------------
 
-;; Configuración básica
-(setq inhibit-startup-message t)
-(scroll-bar-mode 1)
-(tool-bar-mode 1)
-(menu-bar-mode 1)
-(column-number-mode 1)
-;; Line numbers desactivados por defecto
-(global-display-line-numbers-mode -1)
-
-;; (setq default-frame-alist '((toolkit . gtk)))
-
-;; Configuración de paquetes
+;;; Configura los repositorios de paquetes.
 (require 'package)
 (setq package-archives
       '(("melpa" . "https://melpa.org/packages/")
         ("org" . "https://orgmode.org/elpa/")
         ("gnu" . "https://elpa.gnu.org/packages/")))
+
+;; Inicializa el sistema de paquetes.
 (package-initialize)
 
-;; Instalar use-package si no está instalado
+;; Instala `use-package` si no está instalado.
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
   (package-install 'use-package))
+
+;; Carga `use-package` y asegura la instalación automática de los paquetes.
 (require 'use-package)
 (setq use-package-always-ensure t)
 
-;; Vertico para completado vertical
-(use-package vertico
-  :init
-  (vertico-mode))
+;;; ----------------------------------------------------------------------
+;;; 2. Basic UI
+;;; ----------------------------------------------------------------------
 
-;; Marginalia para anotaciones en el minibuffer
-(use-package marginalia
-  :init
-  (marginalia-mode))
+;; Configura elementos básicos de la interfaz de usuario.
 
-;; Corfu para completado en el buffer
-(use-package corfu
-  :custom
-  (corfu-auto t)
-  (corfu-auto-delay 0.2)
-  :init
-  (global-corfu-mode))
+;; Desactiva el mensaje de bienvenida al inicio.
+(setq inhibit-startup-message t)
 
-;; Consult para búsqueda mejorada
-(use-package consult
-  :bind
-  (("C-S" . consult-line) ;; Buscar en la línea actual 
-   ("C-R" . consult-ripgrep) ;; Buscar en archivos
-   ("M-y" . consult-yank-pop) ;; Historial del portapapeles
-   ("C-x b" . consult-buffer)
-   :map minibuffer-local-map
-   ("C-H m" . consult-history))) ;; Historial del minibuffer
+;; Activa las barras de desplazamiento.
+(scroll-bar-mode 1)
 
-;; Embark para acciones contextuales
-(use-package embark
-  :bind
-  (("C-." . embark-act) ;; Acción principal
-   ("C-;" . embark-dwim) ;; Acción Haz lo que yo quiero
-   ("C-h B" . embark-bindings))) ;; Mostrar combinaciones de teclas
+;; Activa la barra de herramientas.
+(tool-bar-mode 1)
 
-;; Embark-consult integración
-  (use-package embark-consult
-    :after (embark consult))
+;; Activa la barra de menú.
+(menu-bar-mode 1)
 
-;; Company para autocompletado
-(use-package company
-  :hook (after-init . global-company-mode)
-  :custom
-  (company-idle-delay 0.2)
-  (company-minimum-prefix-length 1))
+;; Activa la visualización del número de columna.
+(column-number-mode 1)
 
-;; Hyperbole
+;; Desactiva la visualización del número de línea globalmente.
+(global-display-line-numbers-mode -1)
+
+;;; ----------------------------------------------------------------------
+;;; 3. Appearance
+;;; ----------------------------------------------------------------------
+
+;; Configura temas y fuentes.
+
+;; Doom themes: Temas visuales.
+(use-package doom-themes
+  :config
+  (load-theme 'doom-one t) ; Carga el tema 'doom-one'.
+  (setq doom-themes-enable-bold nil)   ; Desactiva la negrita en el tema.
+  (setq doom-themes-enable-italic nil)) ; Desactiva la cursiva en el tema.
+
+;; Configuración de la fuente por defecto.
+(set-face-attribute 'default nil
+                    :family "SauceCodePro Nerd Font Mono" ; Fuente a usar.
+                    :height 110                  ; Altura de la fuente.
+                    :weight 'normal               ; Peso de la fuente.
+                    :width 'normal)                ; Ancho de la fuente.
+
+;;; ----------------------------------------------------------------------
+;;; 4. Navigation
+;;; ----------------------------------------------------------------------
+
+;; Hyperbole: Navegación avanzada y gestión de la información.
 (use-package hyperbole
   :ensure t
   :config
   (hyperbole-mode 1)
-
-  ;; Configurar HyWiki dentro de tu directorio hyperb existente
   (setq hywiki-directory (expand-file-name "wiki" hbmap:dir-user))
-	;; Asegurar que existe el directorio
-	(unless (file-exists-p hywiki-directory)
-	  (make-directory hywiki-directory t))
-	;; Activar HyWiki globalmente
-	(hywiki-mode 1)
-
-  
+  (unless (file-exists-p hywiki-directory)
+      (make-directory hywiki-directory t))
+  (hywiki-mode 1)
   (setq hyperbole-contact-notebook-mode 'hyrolo)
   (setq hsys-org-enable-smart-keys t)
   (setq hyrolo-date-format "%Y-%m-%d %H:%M:%S")
   )
 
+;;; ----------------------------------------------------------------------
+;;; 5. Autocompletion
+;;; ----------------------------------------------------------------------
 
-;; Soporte para Lisp (SLY)
-(use-package sly
+;; Company: Marco de trabajo para la autocompletación.
+(use-package company
+  :hook (after-init . global-company-mode)
   :custom
-  (inferior-lisp-program "sbcl")
-  :config
-  (define-key sly-mode-map (kbd "C-c C-c") 'sly-eval-defun)
-  (define-key sly-mode-map (kbd "C-c C-k") 'sly-compile-and-load-file))
+  (company-idle-delay 0.2)           ; Retardo antes de que se inicie la autocompletación.
+  (company-minimum-prefix-length 1)) ; Longitud mínima del prefijo para la autocompletación.
 
-;; Soporte para Scheme (Geiser)
-(use-package geiser
-  :ensure t
-  :config
-  (setq geiser-active-implementations '(racket)))
-
-(use-package geiser-racket
-  :ensure t
-  :after geiser)
-
-;; Projectile para gestión de proyectos
-(use-package projectile
+;; Corfu: Marco de trabajo para la finalización en el búfer.
+(use-package corfu
+  :custom
+  (corfu-auto t)         ; Activa la finalización automática.
+  (corfu-auto-delay 0.2)   ; Establece el retardo para la finalización automática.
   :init
-  (projectile-mode +1)
-  :bind
-  (:map projectile-mode-map
-        ("C-c p" . projectile-command-map)))
+  (global-corfu-mode))
 
-;; Magit para control de versiones
-(use-package magit
-  :bind
-  ("C-x g" . magit-status))
+;;; ----------------------------------------------------------------------
+;;; 6. Parenthesis and Syntax
+;;; ----------------------------------------------------------------------
 
-;; vterm para emulación de terminal
-(use-package vterm
-  :load-path "~/.emacs.d/site-lisp/emacs-libvterm"
-  :config
-  (setq vterm-shell "/bin/bash")
-  (setq vterm-max-scrollback 10000)
-  ;; Keybindings actualizados
-  :bind (("C-c v" . vterm)
-         ("C-c C-v" . vterm-other-window)))
-
-;; Portapapeles xclip
-(use-package xclip
-  :config
-  (xclip-mode 1)
-  (setq xclip-program "xclip")
-  (setq xclip-select-enable-clipboard t))
-
-;;; Navegador EAF con Configuración para Cinnamon
-
-;(setenv "PYTHONPATH" 
-;        (concat 
-;         (expand-file-name "~/.emacs.d/site-lisp/emacs-application-framework/python-epc")
-;         ":"
-;         (getenv "PYTHONPATH")))
-
-
-    ;; Deshabilitar notificaciones de sistema y configuración específica para Cinnamon
-;; Configuración más detallada para EAF
-;(setq eaf-browser-enable-adblocker t)
-;(setq eaf-browser-enable-autofill t)
-;(setq eaf-browser-default-zoom 1.0)
-;(setq eaf-browser-dark-mode nil)
-;(setq eaf-browser-enable-notify nil)
-;(setq eaf-python-command "python3")
-;(setq eaf-wm-name "Cinnamon")
-;(setq eaf-browser-enable-plugin t)
-;(setq eaf-enable-debug t)
-;(setq eaf-browser-qwebengine-args '("--disable-web-security"
-;                                   "--no-sandbox"
-;                                   "--disable-features=VizDisplayCompositor"))
-
-;; Específico para Qt6
-;(setq eaf-qt-args '("-platform" "xcb"))
-
-;(add-to-list 'load-path "~/.emacs.d/site-lisp/emacs-application-framework/")
-;(require 'eaf)
-;(require 'eaf-browser)
-
-     ;; Opcional: Hacer EAF el navegador por defecto
-;(setq browse-url-browser-function 'eaf-open-browser)
-
-;;; Propuesta de configuración de EAF hecha por Perplexity 240325
-     (add-to-list 'load-path "~/.emacs.d/eaf")
-       (require 'eaf)
-       (require 'eaf-browser)  ; Activa el navegador
-
-
-
-
-
-;; Tema moderno y ligero
-(use-package doom-themes
-  :config
-  (load-theme 'doom-one t)
-  (setq doom-themes-enable-bold nil
-        doom-themes-enable-italic nil))
-
-;; Fuente
-(set-face-attribute 'default nil
-                    :family "SauceCodePro Nerd Font Mono"   ;; "JetBrains Mono NL Nerd Font Regular"
-                    :height 110
-                    :weight 'normal
-                    :width 'normal)
-
-;; Rainbow-delimiters para colorear paréntesis
-(use-package rainbow-delimiters
-  :ensure t
-  :hook (prog-mode . rainbow-delimiters-mode))
-
-;; Smartparens para manejo inteligente de paréntesis
+;; Smartparens: Manipulación inteligente de paréntesis y otros pares.
 (use-package smartparens
   :ensure t
   :init
@@ -216,30 +116,140 @@
   :config
   (smartparens-global-mode 1)
   (show-smartparens-global-mode 1)
-  ;; Configuración específica para Lisp
   (sp-use-paredit-bindings)
-  ;; Resaltar pareja de paréntesis
   (setq sp-show-pair-from-inside t)
-  ;; No crear pares de comillas simples en modo Lisp
   (sp-local-pair '(emacs-lisp-mode lisp-mode scheme-mode) "'" nil :actions nil))
 
-(use-package json-process-client  ;; Recomendación de DeepSeek-R1, para indium
-  :ensure t)
+;; Rainbow delimiters: Colorea los delimitadores según su anidamiento.
+(use-package rainbow-delimiters
+  :ensure t
+  :hook (prog-mode . rainbow-delimiters-mode))
 
-(use-package indium               ;; Recomendación de DeepSeek-R1, para lispy
-  :ensure t)
-
-(use-package lispy		  ;; Recomendación de DeepSeek-R1 (para revisar paréntesis y cosas así)
+;; Lispy: Edición de código Lisp-like.
+(use-package lispy
   :ensure t
   :hook (emacs-lisp-mode . lispy-mode))
 
-;; Hooks personalizados para modos Lisp
+;;; ----------------------------------------------------------------------
+;;; 7. Language-specific
+;;; ----------------------------------------------------------------------
+
+;; SLY: Soporte para Common Lisp.
+(use-package sly
+  :custom
+  (inferior-lisp-program "sbcl") ; Programa Lisp a usar.
+  :config
+  (define-key sly-mode-map (kbd "C-c C-c") 'sly-eval-defun) ; Evaluar la definición de la función.
+  (define-key sly-mode-map (kbd "C-c C-k") 'sly-compile-and-load-file)) ; Compilar y cargar el archivo.
+
+;; Geiser: Soporte para Scheme/Racket.
+(use-package geiser
+  :ensure t
+  :config
+  (setq geiser-active-implementations '(racket))) ; Implementaciones de Scheme a usar.
+
+;; Modo Geiser para Racket.
+(use-package geiser-racket
+  :ensure t
+  :after geiser)
+
+;;; ----------------------------------------------------------------------
+;;; 8. Project and Version Control
+;;; ----------------------------------------------------------------------
+
+;; Projectile: Gestión de proyectos.
+(use-package projectile
+  :init
+  (projectile-mode +1)
+  :bind
+  (:map projectile-mode-map
+        ("C-c p" . projectile-command-map)))
+
+;; Magit: Interfaz para Git.
+(use-package magit
+  :bind
+  ("C-x g" . magit-status))
+
+;;; ----------------------------------------------------------------------
+;;; 9. Terminal
+;;; ----------------------------------------------------------------------
+
+;; Vterm: Emulador de terminal.
+(use-package vterm
+  :load-path "~/.emacs.d/site-lisp/emacs-libvterm" ; Ruta para la biblioteca de Vterm.
+  :config
+  (setq vterm-shell "/bin/bash")        ; Shell a usar.
+  (setq vterm-max-scrollback 10000)   ; Número máximo de líneas para el historial.
+  :bind (("C-c v" . vterm)              ; Abrir Vterm.
+         ("C-c C-v" . vterm-other-window))) ; Abrir Vterm en otra ventana.
+
+;;; ----------------------------------------------------------------------
+;;; 10. System Integration
+;;; ----------------------------------------------------------------------
+
+;; Xclip: Integración con el portapapeles de X.
+(use-package xclip
+  :config
+  (xclip-mode 1)
+  (setq xclip-program "xclip")
+  (setq xclip-select-enable-clipboard t))
+
+;;; ----------------------------------------------------------------------
+;;; 11. Search
+;;; ----------------------------------------------------------------------
+
+;; Consult: Utilidades de búsqueda mejoradas.
+(use-package consult
+  :bind
+  (("C-S" . consult-line)     ; Buscar en la línea actual.
+   ("C-R" . consult-ripgrep)  ; Buscar en archivos usando ripgrep.
+   ("M-y" . consult-yank-pop) ; Historial del portapapeles.
+   ("C-x b" . consult-buffer)  ; Cambiar de búfer.
+   :map minibuffer-local-map  ; Mapa de teclas local del minibúfer.
+   ("C-H m" . consult-history))) ; Historial del minibúfer.
+
+;; Embark: Acciones contextuales sobre los objetivos.
+(use-package embark
+  :bind
+  (("C-." . embark-act)      ; Acción principal.
+   ("C-;" . embark-dwim)     ; Acción "Do What I Mean".
+   ("C-h B" . embark-bindings))) ; Mostrar las combinaciones de teclas.
+
+;; Integración de Embark y Consult.
+(use-package embark-consult
+  :after (embark consult))
+
+;;; ----------------------------------------------------------------------
+;;; 12. Other
+;;; ----------------------------------------------------------------------
+
+;; Otras configuraciones y paquetes.
+
+(use-package json-process-client
+  :ensure t)
+
+(use-package indium
+  :ensure t)
+
+;; EAF: Emacs Application Framework.
+(use-package eaf
+  :load-path "~/.emacs.d/eaf")
+
+;;; ----------------------------------------------------------------------
+;;; 13. Custom Functions
+;;; ----------------------------------------------------------------------
+
+;; Funciones personalizadas.
+
+;; Configuración para los modos Lisp.
 (defun my-lisp-mode-setup ()
-  (show-paren-mode 1)
-  (smartparens-strict-mode 1)
-  (company-mode 1)
-  (display-line-numbers-mode 1)
-  (rainbow-delimiters-mode 1))
+  "Configuración para los modos Lisp."
+  (interactive)
+  (show-paren-mode 1)         ; Resaltar paréntesis coincidentes.
+  (smartparens-strict-mode 1) ; Modo estricto de Smartparens.
+  (company-mode 1)            ; Activar Company para la autocompletación.
+  (display-line-numbers-mode 1) ; Mostrar números de línea.
+  (rainbow-delimiters-mode 1))  ; Activar Rainbow Delimiters.
 
 (add-hook 'emacs-lisp-mode-hook 'my-lisp-mode-setup)
 (add-hook 'lisp-mode-hook 'my-lisp-mode-setup)
@@ -247,75 +257,11 @@
 (add-hook 'sly-mrepl-mode-hook 'my-lisp-mode-setup)
 (add-hook 'geiser-repl-mode-hook 'my-lisp-mode-setup)
 
-;; Configuración de EAT (cargar al final)
+;; EAT: Emacs ASCII Terminal (configuración alternativa).
 (add-to-list 'load-path "~/.emacs.d/site-lisp/emacs-eat")
-(when (require 'eat nil t)
-  (setq eat-enable-mouse t)
-  (setq eat-enable-alternative-display t)
-  (add-hook 'eshell-mode-hook 'eat-eshell-enable)
-  (add-hook 'eshell-load-hook #'eat-eshell-mode)
-  (global-set-key (kbd "C-c t") #'eat))
+(require 'eat nil t)
 
-;;(add-to-list 'load-path "~/.emacs.d/site-lisp/emacs-eat")
-;;(require 'eat nil t)
-
-;; (when (fboundp 'global-eat-eshell-mode)
-;;  (setq eat-enable-mouse t)
-;;  (setq eat-enable-alternative-display t)
-;;  (global-eat-eshell-mode 1)
-;;  (add-hook 'eshell-mode-hook 'eat-eshell-enable)
-;;  (add-hook 'eshell-load-hook #'eat-eshell-mode)
-;;  (define-key eshell-mode-map (kbd "C-c C-j") 'eat-semi-char-mode)
-;;  (define-key eshell-mode-map (kbd "C-c C-e") 'eat-emacs-mode)
-;;  (define-key eshell-mode-map (kbd "C-c M-d") 'eat-char-mode)
-;;  (define-key eshell-mode-map (kbd "C-c C-k") 'eat-kill-process)
-;;  (global-set-key (kbd "C-c t") #'eat))
-
-;; (use-package eaf
-;;  :load-path "~/.emacs.d/site-lisp/emacs-application-framework"
-;;  :custom
-  ; See https://github.com/emacs-eaf/emacs-application-framework/wiki/Customization
-;;  (eaf-browser-continue-where-left-off t)
-;;  (eaf-browser-enable-adblocker t)
-;;  (browse-url-browser-function 'eaf-open-browser)
-;;  :config
-;;  (defalias 'browse-web #'eaf-open-browser)
-;;  (eaf-bind-key scroll_up "C-n" eaf-pdf-viewer-keybinding)
-;;  (eaf-bind-key scroll_down "C-p" eaf-pdf-viewer-keybinding)
-;;  (eaf-bind-key take_photo "p" eaf-camera-keybinding)
-;;  (eaf-bind-key nil "M-q" eaf-browser-keybinding)) ;; unbind, see more in the Wiki
-
-;;; ** PARA HACER LOS BACKUPS - Configuración de Git y Magit **
-
-;;; 1. Asegúrate de tener Git instalado en tu sistema Linux Mint.
-;;;    En la terminal, puedes verificar con:  `git --version`
-;;;    Si no está instalado, puedes instalarlo con: `sudo apt update && sudo apt install git`
-
-;;; 2. Instala Magit y Transient en Emacs (si no los tienes ya).
-;;;    Emacs 30.0.50 ya debería tenerlos, pero si no, usa M-x package-install RET magit RET y M-x package-install RET transient RET
-
-;;; 3. Configuración básica de Magit (opcional, pero recomendado)
-(use-package magit
-  :commands (magit-status magit-clone) ; Comandos que queremos cargar al inicio
-  :config
-  ;;; Atajos de teclado Emacs-style para Magit (recomendado si no usas Evil Mode)
-  (global-set-key (kbd "C-c g s") 'magit-status) ; Atajo Emacs-style: Ctrl+c seguido de g, luego s para magit-status
-  (global-set-key (kbd "C-c g c") 'magit-clone)  ; Atajo Emacs-style: Ctrl+c seguido de g, luego c para magit-clone
-
-  ;;; Atajos de teclado Vim-style para Magit (opcional, si usas Evil Mode)
-  ;; (evil-define-key 'normal 'global "gs" 'magit-status) ; Atajo Vim-style para magit-status (comentado porque no usas Evil Mode ahora)
-  ;; (evil-define-key 'normal 'magit-mode-map "q" 'magit-mode-bury-buffer) ; Atajo Vim-style para cerrar buffers de Magit (comentado)
-
-  ;;; Personalizaciones adicionales de Magit (opcional, puedes investigar más adelante)
-  )
-
-;;; 4. Configuración básica de Transient (ya debería venir con Magit, pero por si acaso)
-(use-package transient
-  :ensure nil ; Transient suele venir con Magit, así que no es necesario instalarlo aparte
-  ;;; Puedes agregar configuraciones adicionales de Transient aquí si lo deseas
-  )
-
-
+;; Función para actualizar la configuración de Emacs en GitHub.
 (defun my/update-config ()
   "Actualiza la configuración de Emacs en GitHub usando Magit."
   (interactive)
@@ -331,52 +277,38 @@
     (if (not (fboundp 'magit-status))
         (error "Magit no está instalado. Por favor, instala Magit primero.")
 
-    ;; Abrir Magit en el directorio de configuración
-    (cd emacs-config-dir)
-	;; Verificar si es un repositorio Git
-      	(if (not (file-exists-p (expand-file-name ".git" emacs-config-dir)))
-            (error "El directorio de configuración no es un repositorio Git. Inicializa git primero.")
+      ;; Abrir Magit en el directorio de configuración
+      (cd emacs-config-dir)
+      ;; Verificar si es un repositorio Git
+      (if (not (file-exists-p (expand-file-name ".git" emacs-config-dir)))
+          (error "El directorio de configuración no es un repositorio Git. Inicializa git primero.")
 
-	  ;; Mostrar estado de Git
-	  (magit-status emacs-config-dir)
-	  (message "Usa Magit para stage (s), commit (c c), y push (P p).")
+        ;; Mostrar estado de Git
+        (magit-status emacs-config-dir)
+        (message "Usa Magit para stage (s), commit (c c), y push (P p).")
 
-	  ;; Automatización opcional (si se confirma)
-	  (when (y-or-n-p "¿Quieres stagear todos los cambios (agregar todos los archivos modificados) y hacer commit automáticamente? ")
-	    (magit-stage-modified t)
-	    ;; Solicitar mensaje de commit y después crear el commit
-	    (let ((commit-message (read-string "Mensaje de commit: ")))
-              (magit-commit-create (list "-m" commit-message)) 
-	      ;; Hacer push
-	      (when (y-or-n-p "¿Hacer push a GitHub? ")
-		(magit-push-current-to-pushremote nil)))
-	    ))))) ; Cierre del when y la función
+        ;; Automatización opcional (si se confirma)
+        (when (y-or-n-p "¿Quieres stagear todos los cambios (agregar todos los archivos modificados) y hacer commit automáticamente? ")
+          (magit-stage-modified t)
+          ;; Solicitar mensaje de commit y después crear el commit
+          (let ((commit-message (read-string "Mensaje de commit: ")))
+            (magit-commit-create (list "-m" commit-message))
+            ;; Hacer push
+            (when (y-or-n-p "¿Hacer push a GitHub? ")
+              (magit-push-current-to-pushremote nil))))))))
 
-;; Optimizaciones finales
-(setq jit-lock-defer-time 0.05)
-(setq auto-window-vscroll nil)
-(setq fast-but-imprecise-scrolling t)
+;;; ----------------------------------------------------------------------
+;;; 14. Final Optimizations
+;;; ----------------------------------------------------------------------
 
-;; Provide el módulo
+;; Configuración final para mejorar el rendimiento.
+(setq jit-lock-defer-time 0.05)         ; Retraso para jit-lock.
+(setq auto-window-vscroll nil)        ; Desactivar el desplazamiento automático de la ventana.
+(setq fast-but-imprecise-scrolling t) ; Activar el desplazamiento rápido pero impreciso.
+
+;;; ----------------------------------------------------------------------
+;;; 15. Provide this file as a module
+;;; ----------------------------------------------------------------------
+
+;; Proporcionar este archivo como módulo.
 (provide 'init)
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(org-fold-core-style 'overlays)
- '(package-selected-packages nil))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
-;; Carga doom-modeline
-(require 'doom-modeline)
-
-;; Configura los iconos de doom-modeline
-;; (setq doom-modeline-icon (display-graphic-p 'nerd-icons))
-
-;; Activa doom-modeline
-(doom-modeline-mode 1)
